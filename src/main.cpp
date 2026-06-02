@@ -75,15 +75,21 @@ TexstudioApp::TexstudioApp(QString &id, int &argc, char **argv) : QtSingleApplic
 
 void TexstudioApp::init(QStringList &cmdLine)
 {
+#if defined(Q_OS_OHOS)
+	QSplashScreen *splash = nullptr;
+#else
 	QPixmap pixmap(":/images/splash.png");
 	QSplashScreen *splash = new QSplashScreen(pixmap);
 	splash->show();
 	processEvents();
+#endif
 
     mw = new Texstudio(nullptr, Qt::WindowFlags(), splash);
 	connect(this, SIGNAL(lastWindowClosed()), this, SLOT(quit()));
+#if !defined(Q_OS_OHOS)
 	splash->finish(mw);
 	delete splash;
+#endif
 
 	initialized = true;
 
