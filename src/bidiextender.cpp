@@ -4,7 +4,7 @@
 
 //mostly taken from biditexmaker
 
-#if defined( Q_OS_LINUX ) || ( defined( Q_OS_UNIX ) && !defined( Q_OS_MAC )  && !defined( Q_OS_HAIKU) )
+#if (defined( Q_OS_LINUX ) || ( defined( Q_OS_UNIX ) && !defined( Q_OS_MAC )  && !defined( Q_OS_HAIKU) )) && !defined(Q_OS_OHOS)
 #define WS_X11
 #endif
 

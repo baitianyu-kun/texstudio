@@ -20,7 +20,11 @@ void ChatDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, 
     // Calculate bubble size based on text
     QRect bubbleRect = option.rect.adjusted(10, 5, -10, -5);
     QTextDocument doc;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     doc.setMarkdown(text);
+#else
+    doc.setPlainText(text);
+#endif
     doc.setTextWidth(bubbleRect.width() - margin);
 
     int pos1=index.data(Qt::UserRole+1).toInt();
@@ -106,7 +110,11 @@ void ChatDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, 
 QSize ChatDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const {
     // Essential to prevent bubbles from overlapping
     QTextDocument doc;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     doc.setMarkdown(index.data(Qt::DisplayRole).toString());
+#else
+    doc.setPlainText(index.data(Qt::DisplayRole).toString());
+#endif
     doc.setTextWidth(option.rect.width() - 2*padding - margin); // Account for margins
     qreal width = doc.idealWidth() + 2*padding;
     return QSize(width, doc.size().height()+2*padding+40); // Extra space for "Copy" button
@@ -242,7 +250,11 @@ int ChatDelegate::getPositionFromClick(const QModelIndex &index, const QRect rec
     QPoint offset=textRect.topLeft();
     const QString text=index.data(Qt::DisplayRole).toString();
     QTextDocument doc;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     doc.setMarkdown(text);
+#else
+    doc.setPlainText(text);
+#endif
     doc.setTextWidth(bubbleRect.width() - margin);
     auto layout = doc.documentLayout();
     QPoint pt=clickPos-offset;

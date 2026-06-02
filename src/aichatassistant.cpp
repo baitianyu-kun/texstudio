@@ -344,7 +344,11 @@ void AIChatAssistant::slotCopyText()
         int pos2=index.data(Qt::UserRole+2).toInt();
         if(pos1>-1 && pos2>0){
             QTextDocument doc;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
             doc.setMarkdown(text);
+#else
+            doc.setPlainText(text);
+#endif
             QTextCursor cursor(&doc);
             cursor.setPosition(pos1);
             cursor.setPosition(pos2,QTextCursor::KeepAnchor);

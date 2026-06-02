@@ -79,7 +79,11 @@ LatexLogWidget::LatexLogWidget(QWidget *parent) :
 
 	infoLabel = new QLabel(tr("No log file available"), this);
     infoLabel->setStyleSheet("color: black; background: #FFFBBF;");
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     infoLabel->setTextFormat(Qt::MarkdownText);
+#else
+    infoLabel->setTextFormat(Qt::RichText);
+#endif
 	infoLabel->setMargin(2);
     infoLabel->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::LinksAccessibleByMouse);
     infoLabel->setOpenExternalLinks(false);

@@ -144,7 +144,7 @@ endif()
 if(WIN32)
 	set(SOURCE_FILES ${SOURCE_FILES} win.rc)
 endif()
-if(UNIX AND NOT APPLE AND NOT HAIKU)
+if(UNIX AND NOT APPLE AND NOT HAIKU AND NOT OHOS)
 	add_subdirectory(src/xkb)
 endif()
 
@@ -372,8 +372,11 @@ if(UNIX)
 endif()
 
 # Build texstudio application
-add_executable(texstudio ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCE_FILES} ${FORM_FILES} ${OSX_FILES} ${manual} ${images} ${static} ${static_scripts} ${static_styles} ${design_static}
-)
+if(OHOS)
+    add_library(texstudio SHARED ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCE_FILES} ${FORM_FILES} ${OSX_FILES} ${manual} ${images} ${static} ${static_scripts} ${static_styles} ${design_static})
+else()
+    add_executable(texstudio ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCE_FILES} ${FORM_FILES} ${OSX_FILES} ${manual} ${images} ${static} ${static_scripts} ${static_styles} ${design_static})
+endif()
 target_link_libraries(texstudio PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
@@ -449,7 +452,7 @@ if(ZLIB_FOUND)
     target_link_libraries(texstudio PUBLIC ${ZLIB_LIBRARIES})
 endif()
 
-if(UNIX AND NOT APPLE AND NOT HAIKU)
+if(UNIX AND NOT APPLE AND NOT HAIKU AND NOT OHOS)
 	find_package(X11 REQUIRED)
 	target_include_directories(texstudio PUBLIC ${X11_INCLUDE_DIRS})
 	target_link_libraries(texstudio PUBLIC ${X11_LIBRARIES})
