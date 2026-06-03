@@ -1,7 +1,9 @@
 #include "utilsSystem.h"
 #include "unixutils.h"
 #include "smallUsefulFunctions.h"
+#include <QStandardPaths>
 #include <QSvgRenderer>
+#include <QStandardPaths>
 
 #ifdef Q_OS_MAC
 #include <CoreFoundation/CFURL.h>
@@ -649,6 +651,23 @@ void updatePathSettings(QProcess *proc, QString additionalPaths)
 		path += getPathListSeparator() + additionalPaths;
 	}
 	env.insert("PATH", path);
+#if defined(Q_OS_OHOS)
+    // On OpenHarmony, Kpathsea fails to lstat the binary path due to strict app sandboxing.
+    // We bypass this by explicitly providing TEXMFROOT and TEXMFCNF via the environment.
+    // Do NOT use fi.exists() because stat() fails with Permission Denied in the sandbox.
+    QString program = proc->program();
+    QString execPath = QStandardPaths::findExecutable(program, path.split(getPathListSeparator()));
+    if (execPath.isEmpty()) execPath = program;
+    QFileInfo fi(execPath);
+    if (fi.isAbsolute()) {
+        QString binDir = fi.absolutePath(); 
+        QString rootDir = QFileInfo(binDir).absolutePath(); 
+        env.insert("TEXMFROOT", rootDir);
+        // texlive-hnp usually has texmf.cnf in texmf/web2c or texmf-dist/web2c
+        env.insert("TEXMFCNF", rootDir + "/texmf/web2c:" + rootDir + "/texmf-dist/web2c");
+        env.insert("TEXMF", rootDir + "/texmf-dist");
+    }
+#endif
 	// Note: this modifies the path only for the context of the called program. It does not affect the search path for the program itself.
 	proc->setProcessEnvironment(env);
 }

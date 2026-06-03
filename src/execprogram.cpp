@@ -150,6 +150,56 @@ void ExecProgram::execAndNoWait(QProcess &proc) const
 	}
 	setWinProcModifier(proc);
 	QString pathOrig = pathExtend();
+
+#if defined(Q_OS_OHOS)
+    QProcessEnvironment env = proc.processEnvironment();
+    QString execPath = m_program;
+    if (QFileInfo(execPath).isRelative()) {
+        execPath = QStandardPaths::findExecutable(m_program, getEnvironmentPathList());
+    }
+    if (!execPath.isEmpty()) {
+        QFileInfo fi(execPath);
+        QString realPath = fi.canonicalFilePath();
+        if (realPath.isEmpty()) realPath = fi.symLinkTarget();
+
+        // OHOS HNP Symlink bypass: if sandbox blocks lstat, canonicalFilePath fails.
+        // HNP installs binaries to /data/service/hnp/<vendor>/<name>_<version>/bin/
+        // and symlinks them to /data/service/hnp/bin/
+        if (realPath.isEmpty() && execPath.startsWith("/data/service/hnp/bin/")) {
+            QDir baseDir("/data/service/hnp");
+            QStringList vendors = baseDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+            for (const QString& vendor : vendors) {
+                if (vendor == "bin" || vendor == "lib") continue;
+                QDir vendorDir(baseDir.absoluteFilePath(vendor));
+                QStringList pkgs = vendorDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+                for (const QString& pkg : pkgs) {
+                    QString possibleBin = vendorDir.absoluteFilePath(pkg) + "/bin/" + fi.fileName();
+                    if (QFileInfo::exists(possibleBin)) {
+                        realPath = possibleBin;
+                        break;
+                    }
+                }
+                if (!realPath.isEmpty()) break;
+            }
+            if (realPath.isEmpty()) { // ultimate fallback
+                realPath = "/data/service/hnp/texlive.org/texlive_1.0.0/bin/" + fi.fileName();
+            }
+        } else if (realPath.isEmpty()) {
+            realPath = execPath;
+        }
+
+        fi = QFileInfo(realPath);
+        if (fi.isAbsolute()) {
+            QString binDir = fi.absolutePath();
+            QString rootDir = QFileInfo(binDir).absolutePath();
+            env.insert("TEXMFROOT", rootDir);
+            env.insert("TEXMFCNF", rootDir + "/texmf/web2c:" + rootDir + "/texmf-dist/web2c");
+            env.insert("TEXMF", rootDir + "/texmf-dist");
+            proc.setProcessEnvironment(env);
+        }
+    }
+#endif
+
 	proc.start(m_program, m_arguments);
 	pathSet(pathOrig);
 }
