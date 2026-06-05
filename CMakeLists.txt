@@ -82,6 +82,7 @@ set(RESOURCE_FILES
 	symbols.qrc
 	completion.qrc
 	images.qrc
+	translations.qrc
 )
 if(APPLE)
     file(GLOB manual

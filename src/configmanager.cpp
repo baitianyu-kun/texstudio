@@ -2870,13 +2870,13 @@ void ConfigManager::loadTranslations(QString locale)
         if (locale.length() < 2) locale = "en";
 	}
 	QString txsSourceFile = "texstudio_" + locale + ".qm";
-    QString txsTranslationFile = findResourceFile(txsSourceFile,false,QStringList(),{"translation"});
+    QString txsTranslationFile = findResourceFile(txsSourceFile,false,QStringList()<<":/translation/",{"translation"});
     QString qtSourceFile = "qt_" + locale + ".qm";
-    QString qtTranslationFile = findResourceFile(qtSourceFile,false,QStringList(),{"translation"});
+    QString qtTranslationFile = findResourceFile(qtSourceFile,false,QStringList()<<":/translation/",{"translation"});
     if(qtTranslationFile.isEmpty() && locale.length()>2){
         // fallback to basic locale
         qtSourceFile = "qt_" + locale.left(2) + ".qm";
-        qtTranslationFile = findResourceFile(qtSourceFile,false,QStringList(),{"translation"});
+        qtTranslationFile = findResourceFile(qtSourceFile,false,QStringList()<<":/translation/",{"translation"});
     }
     bool result0=appTranslator->load(txsTranslationFile);
     bool result1=basicTranslator->load(qtTranslationFile);
