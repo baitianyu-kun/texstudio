@@ -80,6 +80,7 @@ public:
 	virtual bool mouseDoubleClickEvent(QMouseEvent *event, QEditor *editor);
 	virtual bool mouseMoveEvent(QMouseEvent *event, QEditor *editor);
 	virtual bool contextMenuEvent(QContextMenuEvent *event, QEditor *editor);
+	virtual void postInputMethodEvent(QInputMethodEvent *event, QEditor *editor);
 private:
 	bool runMacros(QKeyEvent *event, QEditor *editor);
 	bool autoInsertLRM(QKeyEvent *event, QEditor *editor);
@@ -339,6 +340,56 @@ void DefaultInputBinding::postKeyPressEvent(QKeyEvent *event, QEditor *editor)
 		if (completerConfig && completerConfig->enabled)
             view->mayNeedToOpenCompleter(c!=',');
 	}
+}
+
+void DefaultInputBinding::postInputMethodEvent(QInputMethodEvent *event, QEditor *editor)
+{
+    QString txt = event->commitString();
+    if (txt.isEmpty()) return;
+
+    if (LatexEditorView::completer && LatexEditorView::completer->acceptTriggerString(txt)
+            && (editor->currentPlaceHolder() < 0 || editor->currentPlaceHolder() >= editor->placeHolderCount() || editor->getPlaceHolder(editor->currentPlaceHolder()).mirrors.isEmpty() ||  editor->getPlaceHolder(editor->currentPlaceHolder()).affector != BracketInvertAffector::instance())
+            && !editor->flag(QEditor::Overwrite))  {
+        //update completer if necessary
+        editor->emitNeedUpdatedCompleter();
+        // Text is already inserted by QEditor::inputMethodEvent
+
+        EnumsTokenType::TokenType ctx = Parsing::getCompleterContext(editor->cursor().line().handle(), editor->cursor().columnNumber());
+        if(ctx!=EnumsTokenType::def) {
+            // check for environment
+            const LatexDocument *doc = qobject_cast<LatexDocument *>(editor->document());
+            StackEnvironment env;
+            doc->getEnv(editor->cursor().lineNumber(),env);
+            // use topEnv as completion filter for commands
+            const QStringList ignoreEnv = {"document","normal"};
+            if(!env.isEmpty() && !ignoreEnv.contains(env.top().name)){
+                QString envName=env.top().name;
+                QStringList envAliases = doc->lp->environmentAliases.values(envName);
+                if(!envAliases.isEmpty()){
+                    envName=envAliases.first();
+                }
+                LatexEditorView::completer->setFilter(envName);
+            }
+
+            LatexCompleter::CompletionFlags flags= ctx==EnumsTokenType::width ? LatexCompleter::CF_FORCE_LENGTH : LatexCompleter::CompletionFlag(0) ;
+            if(ctx>=Token::specialArg){
+                // handle specialArg completion
+                int df = int(ctx - Token::specialArg);
+                QString cmd = LatexEditorView::completer->getLatexParser().mapSpecialArgs.value(df);
+                LatexEditorView::completer->setWorkPath(cmd);
+                flags= LatexCompleter::CF_FORCE_SPECIALOPTION;
+            }
+            LatexEditorView::completer->complete(editor, flags);
+        }
+    } else {
+        QChar c = txt.at(txt.length() - 1);
+        if (c == ',' || c.isLetter()) {
+            LatexEditorView *view = editor->property("latexEditor").value<LatexEditorView *>();
+            Q_ASSERT(view);
+            if (completerConfig && completerConfig->enabled)
+                view->mayNeedToOpenCompleter(c!=',');
+        }
+    }
 }
 
 bool DefaultInputBinding::keyReleaseEvent(QKeyEvent *event, QEditor *editor)
