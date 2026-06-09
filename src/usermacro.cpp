@@ -255,7 +255,11 @@ void Macro::parseTriggerLanguage(QLanguageFactory *langFactory)
     if(!langFactory) return;
     if (triggerLanguage.isEmpty()) return;
 	triggerLanguages.clear();
-    QStringList langParts = triggerLanguage.split(",", QString::SkipEmptyParts);
+#if (QT_VERSION>=QT_VERSION_CHECK(5,14,0))
+    QStringList langParts = triggerLanguage.split(",", Qt::SkipEmptyParts);
+#else
+	QStringList langParts = triggerLanguage.split(",", QString::SkipEmptyParts);
+#endif
 	foreach (const QString &lang, langFactory->languages()) {
         for (const QString &trigLang : langParts) {
             if(!trigLang.compare(lang,Qt::CaseInsensitive)){

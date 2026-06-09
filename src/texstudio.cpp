@@ -4712,7 +4712,11 @@ void Texstudio::readSettings(bool reread)
     // convert to file extensions with dot for cleanup-dialog (#4419)
     if (config->contains("CleanDialog/Extensions")) {
         QString oldExtensions = config->value("CleanDialog/Extensions").toString();
-        QStringList oldExtList = oldExtensions.split(',', QString::SkipEmptyParts);
+#if (QT_VERSION>=QT_VERSION_CHECK(5,14,0))
+    	QStringList oldExtList = oldExtensions.split(',', Qt::SkipEmptyParts);
+#else
+		QStringList oldExtList = oldExtensions.split(',', QString::SkipEmptyParts);
+#endif
         QStringList convertedList;
         for (const QString &extension : oldExtList) {
             convertedList << "." + extension;
@@ -9006,7 +9010,7 @@ QList<int> Texstudio::findOccurencesApproximate(QString line, const QString &gue
 			if (changedWord[i].category() == QChar::Other_Control || changedWord[i].category() == QChar::Other_Format)
 				changedWord[i] = '\1';
 #if (QT_VERSION>=QT_VERSION_CHECK(5,14,0))
-        foreach (const QString &x, changedWord.split('\1', QString::SkipEmptyParts)){
+        foreach (const QString &x, changedWord.split('\1', Qt::SkipEmptyParts)){
             if (regex.isEmpty())
                 regex += QRegularExpression::escape(x);
             else
@@ -9028,7 +9032,7 @@ QList<int> Texstudio::findOccurencesApproximate(QString line, const QString &gue
 		//search again and allow additional whitespace
 		QString regex;
 #if (QT_VERSION>=QT_VERSION_CHECK(5,14,0))
-        foreach (const QString &x , changedWord.split(" ", QString::SkipEmptyParts))
+        foreach (const QString &x , changedWord.split(" ", Qt::SkipEmptyParts))
             if (regex.isEmpty()) regex = QRegularExpression::escape(x);
             else regex += "\\s+" + QRegularExpression::escape(x);
 #else
@@ -11452,7 +11456,7 @@ QSet<QString> Texstudio::collectPotentialCompletionWords(const QDocument *doc,co
     // generate regexp for getting fuzzy results
     // here the first letter must match, the rest can be fuzzy
 #if (QT_VERSION>=QT_VERSION_CHECK(5,14,0))
-    QStringList chars=word.split("",QString::SkipEmptyParts);
+    QStringList chars=word.split("",Qt::SkipEmptyParts);
 #else
     QStringList chars=word.split("",QString::SkipEmptyParts);
 #endif

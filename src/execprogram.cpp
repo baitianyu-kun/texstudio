@@ -1,5 +1,6 @@
 #include "execprogram.h"
 #include "utilsSystem.h"
+#include <QStandardPaths>
 
 ExecProgram::ExecProgram(void) :
 #ifdef Q_OS_WIN

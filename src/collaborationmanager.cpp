@@ -363,7 +363,11 @@ void CollaborationManager::readyCollabClientStandardOutput()
     }
     QString buffer = collabClientProcess->readAllStandardOutput();
     // interpret message
-    QStringList lines= buffer.split("\r\n", QString::SkipEmptyParts);
+#if (QT_VERSION>=QT_VERSION_CHECK(5,14,0))
+	QStringList lines= buffer.split("\r\n", Qt::SkipEmptyParts);
+#else
+	QStringList lines= buffer.split("\r\n", QString::SkipEmptyParts);
+#endif
     for(QString line : lines){
         if(line.startsWith("{\"jsonrpc\":\"2.0\"")){
             // cut potential Content-Length
@@ -471,7 +475,11 @@ void CollaborationManager::readyCollabServerStandardOutput()
     }
     if(buffer.contains("\tteamtype join")){
         // extract code
-        QStringList lines= buffer.split("\n", QString::SkipEmptyParts);
+#if (QT_VERSION>=QT_VERSION_CHECK(5,14,0))
+	    QStringList lines= buffer.split("\n", Qt::SkipEmptyParts);
+#else
+	    QStringList lines= buffer.split("\n", QString::SkipEmptyParts);
+#endif
         for(QString line : lines){
             line=line.trimmed();
             if(line.startsWith("teamtype join")){
